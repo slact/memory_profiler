@@ -25,7 +25,21 @@ module MemoryProfiler
     end
 
     def lookup_class_name(klass)
-      @class_name_cache[klass] ||= (klass.is_a?(Class) && klass.name) || '<<Unknown>>'
+      unless @class_name_cache[klass]
+        if klass
+          if klass.respond_to? :name
+            val = klass.name
+          elsif Celluloid::Proxy::Async === klass
+            val = "Celluloid::Proxy::Async"
+          else
+            val = klass.to_s.match(/<(.*?)(:0x\w+)?>/)[1]
+          end
+        else
+          val = '<<Unknown>>'
+        end
+        @class_name_cache[klass] = val
+      end
+      @class_name_cache[klass]
     end
 
   end
